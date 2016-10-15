@@ -4,10 +4,10 @@
 var express = require('express');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
-var Dishes = require('./models/dishes');
-var hostname = 'localhost';
-var port = 3000;
+var Dishes = require('../models/dishes');
 
+var hostname = 'localhost';
+var port = 3002;
 var app = express();
 
 app.use(morgan('dev'));
@@ -33,9 +33,8 @@ dishRouter.route('/')
             res.writeHead(200,{"Content-Type": "text/plain"});
 
             res.end('add the  dishes with id:'+ id);
-        })
-          })
-
+        });
+    })
     .delete(function(req, res, next){
         Dishes.remove({}, function (err, resp) {
             if (err)throw(err);
@@ -67,8 +66,8 @@ dishRouter.route('/:dishId')
         });
     });
 
-//commonts
-dishRouter.route('/:dishId/commonts')
+//comments
+dishRouter.route('/:dishId/comments')
     .get(function(req,res,next){
         Dishes.findById(req.params.dishId, function (err, dish) {
             if (err)throw(err);
@@ -82,7 +81,7 @@ dishRouter.route('/:dishId/commonts')
 
             dish.save(function (err, dish) {
                 if (err)throw(err);
-                console.log("Updated Comments")
+                console.log("Updated Comments");
                 res.json(dish);
             });
         });
@@ -91,7 +90,7 @@ dishRouter.route('/:dishId/commonts')
 .delete(function (req, res, next) {
     Dishes.findById(req.params.dishId, function (err, dish) {
         if (err)throw(err);
-        for (var i=0; i<(dish.comments.length-1); i++){
+        for (var i=(dish.comments.length-1);i>=0; i--){
             dish.comments.id(dish.comments[i]._id).remove();
         }
 
@@ -128,6 +127,8 @@ dishRouter.route('/:dishId/comments/:commentId')
     .delete(function (req, res, next) {
         Dishes.findById(req.params.dishId, function (err, dish) {
             dish.comments.id(req.params.commentId).remove();
+
+
             dish.save(function (err, resp) {
                 if (err) throw err;
                 res.json(resp);
@@ -135,12 +136,12 @@ dishRouter.route('/:dishId/comments/:commentId')
         });
     });
 
-module.exports = dishRouter;
 
 app.use('/dishes',dishRouter);
-
+app.listen(port, hostname, function(){
+    console.log('Server running at http:/'+hostname+':'+port+'/');
+});
 app.use(express.static(__dirname + '/public'));
 
-app.listen(port, hostname, function(){
-    console.log('Server running at http://${hostname}:${port}/');
-});
+
+module.exports = dishRouter;
